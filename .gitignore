@@ -1,0 +1,10 @@
+/tmp/
+AGENTS.md
+AGENTS.override.md
+[Bb]in/
+[Oo]bj/
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
