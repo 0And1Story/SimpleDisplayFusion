@@ -2,7 +2,8 @@
 
 # SimpleDisplayFusion
 
-一个面向 Windows 11 的多显示器托盘工具。主要目的是实现类似 [Display Fusion](https://www.displayfusion.com/Help/#settings-windowmanagement) 中 `将新创建的窗口移动到当前屏幕` 的功能。
+一个面向 Windows 11 的多显示器托盘工具。<br>
+目的是实现类似 [Display Fusion](https://www.displayfusion.com/Help/#settings-windowmanagement) 中 `将新创建的窗口移动到当前屏幕` 的功能。
 
 ![Windows 11](https://img.shields.io/badge/Platform-Windows%2011-0078D4)
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/download/dotnet/10.0)
@@ -12,8 +13,8 @@
 </div>
 
 > [!IMPORTANT]
-> 该项目只做一件事情：省去多显示器时手动将新窗口拖到当前屏幕的操作。
-> 因此不接受任何其他无关功能的 feature request 或 pull request，有需要请自行 [fork](https://github.com/0And1Story/SimpleDisplayFusion/fork) 或使用 Display Fusion 等其他工具。
+> 该项目只做一件事情：省去多显示器时手动将新窗口拖到当前屏幕的操作。<br>
+> 因此不接受任何其他无关功能的 feature request 或 pull request，有需要请自行 [fork](https://github.com/0And1Story/SimpleDisplayFusion/fork) 或使用 Display Fusion 等其他工具。<br>
 > 相关功能可在 [Issues](https://github.com/0And1Story/SimpleDisplayFusion/issues) 中提出讨论。
 
 ---
