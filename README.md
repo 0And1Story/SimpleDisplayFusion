@@ -1,12 +1,20 @@
+<div align="center">
+
 # SimpleDisplayFusion
 
-一个面向 Windows 11 的多显示器托盘工具。
+一个面向 Windows 11 的多显示器托盘工具。主要目的是实现类似 [Display Fusion](https://www.displayfusion.com/Help/#settings-windowmanagement) 中 `将新创建的窗口移动到当前屏幕` 的功能。
 
----
+![Windows 11](https://img.shields.io/badge/Platform-Windows%2011-0078D4)
+[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![Latest Release](https://img.shields.io/github/v/release/0And1Story/SimpleDisplayFusion?logo=github&color=brightgreen)](https://github.com/0And1Story/SimpleDisplayFusion/releases/latest)
+[![License](https://img.shields.io/github/license/0And1Story/SimpleDisplayFusion)](https://github.com/0And1Story/SimpleDisplayFusion/blob/main/LICENSE)
 
-## 🎯 项目目的
+</div>
 
-省去多屏使用时手动将新窗口拖到当前屏幕的操作。
+> [!IMPORTANT]
+> 该项目只做一件事情：省去多显示器时手动将新窗口拖到当前屏幕的操作。
+> 因此不接受任何其他无关功能的 feature request 或 pull request，有需要请自行 [fork](https://github.com/0And1Story/SimpleDisplayFusion/fork) 或使用 Display Fusion 等其他工具。
+> 相关功能可在 [Issues](https://github.com/0And1Story/SimpleDisplayFusion/issues) 中提出讨论。
 
 ---
 
@@ -20,20 +28,32 @@
 
 ## 🚀 快速开始
 
-1. 按下文构建单文件版，双击 `SimpleDisplayFusion.exe`。
-2. 在任务栏通知区域找到蓝色显示器图标，右键即可更改设置。
+1. 下载预编译版本，或 [自行构建](#build)。<br>
+[![Latest Release](https://img.shields.io/github/v/release/0And1Story/SimpleDisplayFusion?style=for-the-badge&logo=github&color=brightgreen)](https://github.com/0And1Story/SimpleDisplayFusion/releases/latest)<br>
+Release 中带 `runtime` 后缀的版本直接下载即可运行，无需额外安装 .NET 运行时。若您不确定是否已安装 .NET 10 Desktop Runtime，请下载带 `runtime` 后缀的版本。
+2. 双击启动 `SimpleDisplayFusion.exe`。
+3. 在任务栏通知区域找到蓝色显示器图标，右键即可更改设置。
 
 ---
 
+<a name="build"></a>
+
 ## 🛠️ 构建方法
 
-在 Windows 上安装 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)，然后在项目目录执行以下命令，生成 Windows x64 单文件版。
+在 Windows 上安装 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)，然后在项目目录下执行以下命令：
+
+```powershell
+dotnet build -c Release
+```
+
+双击 `bin/Release/net10.0-windows/SimpleDisplayFusion.exe` 运行。该构建方式依赖 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0/runtime)。
+
+若要生成包含运行时的 Windows x64 单文件版，请使用以下命令：
 
 ```powershell
 dotnet publish -c Release -r win-x64 --self-contained `
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
   -p:EnableCompressionInSingleFile=true -p:DebugType=None `
-  --source https://api.nuget.org/v3/index.json -o tmp/release/win-x64
+  --source https://api.nuget.org/v3/index.json -o bin/release/win-x64
 ```
-
-生成的文件位于 `tmp/release/win-x64/SimpleDisplayFusion.exe`。
+ARM64 机器可把两处 `win-x64` 改为 `win-arm64`。
