@@ -2,8 +2,8 @@
 
 # SimpleDisplayFusion
 
-一个面向 Windows 11 的多显示器托盘工具。<br>
-支持类似 [Display Fusion](https://www.displayfusion.com/Help/#settings-windowmanagement) 的新窗口跟随，以及按屏幕显示桌面。
+一个面向 Windows 11 的多显示器窗口管理优化工具。<br>
+支持类似 [Display Fusion](https://www.displayfusion.com/Help/#settings-windowmanagement) 的新窗口跟随等功能。
 
 ![Windows 11](https://img.shields.io/badge/Platform-Windows%2011-0078D4)
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/download/dotnet/10.0)
@@ -13,7 +13,7 @@
 </div>
 
 > [!IMPORTANT]
-> 该项目专注多显示器下的新窗口跟随和按屏幕显示桌面。<br>
+> 该项目只做一件事：优化多显示器下的窗口管理操作。<br>
 > 因此不接受任何其他无关功能的 feature request 或 pull request，有需要请自行 [fork](https://github.com/0And1Story/SimpleDisplayFusion/fork) 或使用 Display Fusion 等其他工具。<br>
 > 相关功能可在 [Issues](https://github.com/0And1Story/SimpleDisplayFusion/issues) 中提出讨论。
 
@@ -21,10 +21,11 @@
 
 ## ✨ 特色功能
 
-- 多屏时，新打开的应用窗口自动移到鼠标所在的显示器。
-- 右键托盘图标即可暂停或恢复窗口跟随。
-- 多屏时可在托盘开启「Win + D 仅作用于当前屏幕」。按一次最小化鼠标所在屏的窗口，再按一次还原。该功能默认关闭。
+- 新打开的应用窗口自动移到鼠标所在的显示器。
+- 支持 Win + D 仅作用于当前显示器。
 - 支持登录 Windows 时自动启动。
+- 右键托盘图标即可开启或关闭各种功能。
+- 断开显示器后自动关闭所有功能，不影响单显示器操作。
 
 ---
 

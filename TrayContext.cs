@@ -10,7 +10,7 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly WindowWatcher watcher = new();
     private readonly ToolStripMenuItem followMouse = new("新窗口跟随鼠标");
-    private readonly ToolStripMenuItem winDPerMonitor = new("Win + D 仅作用于当前屏幕");
+    private readonly ToolStripMenuItem winDPerMonitor = new("Win + D 仅作用于当前显示器");
     private readonly ToolStripMenuItem launchAtSignIn = new("登录 Windows 时启动");
     private readonly ContextMenuStrip menu = new();
     private readonly NotifyIcon tray;
