@@ -10,18 +10,24 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly WindowWatcher watcher = new();
     private readonly ToolStripMenuItem followMouse = new("新窗口跟随鼠标");
+    private readonly ToolStripMenuItem winDPerMonitor = new("Win + D 仅作用于当前屏幕");
     private readonly ToolStripMenuItem launchAtSignIn = new("登录 Windows 时启动");
     private readonly ContextMenuStrip menu = new();
     private readonly NotifyIcon tray;
+    private readonly MonitorDesktopShortcut desktopShortcut;
     private bool followMouseRequested;
+    private bool winDPerMonitorRequested;
     private bool disposed;
 
     internal TrayContext(Icon icon)
     {
+        var monitorDesktop = new MonitorDesktop();
+        desktopShortcut = new MonitorDesktopShortcut(monitorDesktop.Toggle);
         followMouse.Click += (_, _) => ToggleFollowMouse();
+        winDPerMonitor.Click += (_, _) => ToggleWinDPerMonitor();
         launchAtSignIn.Click += (_, _) => ToggleStartup();
         var exit = new ToolStripMenuItem("退出", null, (_, _) => ExitThread());
-        menu.Items.AddRange([followMouse, launchAtSignIn, new ToolStripSeparator(), exit]);
+        menu.Items.AddRange([followMouse, winDPerMonitor, launchAtSignIn, new ToolStripSeparator(), exit]);
         menu.Opening += (_, _) =>
         {
             bool multipleMonitors = SystemInformation.MonitorCount > 1;
@@ -34,10 +40,11 @@ internal sealed class TrayContext : ApplicationContext
         try
         {
             followMouseRequested = AppSettings.FollowMouseEnabled;
+            winDPerMonitorRequested = AppSettings.WinDPerMonitorEnabled;
         }
         catch (Exception error) when (IsSettingsError(error))
         {
-            ShowError("无法读取窗口跟随设置。", error);
+            ShowError("无法读取窗口设置。", error);
         }
         SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
         UpdateDisplayState(SystemInformation.MonitorCount > 1);
@@ -52,6 +59,7 @@ internal sealed class TrayContext : ApplicationContext
     private void UpdateDisplayState(bool multipleMonitors)
     {
         followMouse.Enabled = multipleMonitors;
+        winDPerMonitor.Enabled = multipleMonitors;
         try
         {
             if (multipleMonitors && followMouseRequested)
@@ -61,11 +69,22 @@ internal sealed class TrayContext : ApplicationContext
         }
         catch (Win32Exception error)
         {
-            RefreshFollowMouse();
             ShowError("无法启用窗口跟随。", error);
-            return;
         }
         RefreshFollowMouse();
+
+        try
+        {
+            if (multipleMonitors && winDPerMonitorRequested)
+                desktopShortcut.Start();
+            else
+                desktopShortcut.Stop();
+        }
+        catch (Win32Exception error)
+        {
+            ShowError("无法启用当前屏幕的 Win + D。", error);
+        }
+        RefreshWinDPerMonitor();
     }
 
     private void ToggleFollowMouse()
@@ -105,6 +124,43 @@ internal sealed class TrayContext : ApplicationContext
         RefreshFollowMouse();
     }
 
+    private void ToggleWinDPerMonitor()
+    {
+        if (SystemInformation.MonitorCount <= 1)
+        {
+            UpdateDisplayState(multipleMonitors: false);
+            return;
+        }
+
+        try
+        {
+            if (desktopShortcut.IsRunning)
+            {
+                AppSettings.WinDPerMonitorEnabled = false;
+                desktopShortcut.Stop();
+            }
+            else
+            {
+                desktopShortcut.Start();
+                try
+                {
+                    AppSettings.WinDPerMonitorEnabled = true;
+                }
+                catch
+                {
+                    desktopShortcut.Stop();
+                    throw;
+                }
+            }
+            winDPerMonitorRequested = desktopShortcut.IsRunning;
+        }
+        catch (Exception error) when (IsSettingsError(error))
+        {
+            ShowError("无法更改 Win + D 设置。", error);
+        }
+        RefreshWinDPerMonitor();
+    }
+
     private void ToggleStartup()
     {
         try
@@ -124,6 +180,9 @@ internal sealed class TrayContext : ApplicationContext
         tray.Text = !followMouse.Enabled ? $"{AppName}（单屏）"
             : watcher.IsRunning ? AppName : $"{AppName}（已暂停）";
     }
+
+    private void RefreshWinDPerMonitor() =>
+        winDPerMonitor.Checked = winDPerMonitor.Enabled ? desktopShortcut.IsRunning : winDPerMonitorRequested;
 
     private void RefreshStartup()
     {
@@ -155,6 +214,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             disposed = true;
             SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
+            desktopShortcut.Dispose();
             watcher.Dispose();
             tray.Dispose();
             menu.Dispose();

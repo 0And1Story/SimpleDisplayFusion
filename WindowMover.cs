@@ -31,8 +31,7 @@ internal static class WindowMover
     {
         if (!Native.IsWindowVisible(window) || Native.IsIconic(window) || !IsApplicationWindow(window))
             return false;
-        if (Native.DwmGetWindowAttribute(window, Native.DwmCloaked, out int cloaked, sizeof(int)) == 0
-            && cloaked != 0)
+        if (Native.IsWindowCloaked(window))
             return false;
 
         nint sourceMonitor = Native.MonitorFromWindow(window, Native.MonitorDefaultToNearest);

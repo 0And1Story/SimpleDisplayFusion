@@ -22,6 +22,20 @@ internal static class AppSettings
         }
     }
 
+    internal static bool WinDPerMonitorEnabled
+    {
+        get
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(SettingsKey);
+            return key?.GetValue(nameof(WinDPerMonitorEnabled)) is 1;
+        }
+        set
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(SettingsKey);
+            key.SetValue(nameof(WinDPerMonitorEnabled), value ? 1 : 0, RegistryValueKind.DWord);
+        }
+    }
+
     internal static bool LaunchAtSignIn
     {
         get
