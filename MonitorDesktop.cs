@@ -6,12 +6,13 @@ internal sealed class MonitorDesktop
 {
     private readonly List<MinimizedWindow> minimizedWindows = [];
 
-    internal void Toggle(nint monitor)
+    internal void Toggle(nint monitor, nint foreground)
     {
         var info = new Native.MonitorInfo { Size = Marshal.SizeOf<Native.MonitorInfo>() };
         if (!Native.GetMonitorInfo(monitor, ref info))
             return;
 
+        nint focusedApp = Native.GetAncestor(foreground, Native.RootOwner);
         var candidates = new List<MinimizedWindow>();
         bool enumerated = Native.EnumWindows((window, _) =>
         {
@@ -21,7 +22,7 @@ internal sealed class MonitorDesktop
             {
                 uint thread = Native.GetWindowThreadProcessId(window, out uint process);
                 if (thread != 0)
-                    candidates.Add(new MinimizedWindow(window, thread, process));
+                    candidates.Add(new MinimizedWindow(window, thread, process, window == focusedApp));
             }
             return true;
         }, 0);
@@ -51,7 +52,9 @@ internal sealed class MonitorDesktop
 
     private void RestoreWindows(nint monitor)
     {
-        // Restore in reverse enumeration order so the original top window is restored last.
+        MinimizedWindow? focusTarget = null;
+
+        // Restore background windows in reverse enumeration order, then activate the previous foreground window.
         for (int i = minimizedWindows.Count - 1; i >= 0; i--)
         {
             var window = minimizedWindows[i];
@@ -64,11 +67,29 @@ internal sealed class MonitorDesktop
             if (!IsOnDesktopMonitor(window.Handle, monitor))
                 continue;
 
-            if (!Native.IsIconic(window.Handle)
-                || (Native.IsWindowVisible(window.Handle)
-                    && Native.ShowWindowAsync(window.Handle, Native.ShowNormalWithoutActivation)))
+            if (!Native.IsIconic(window.Handle))
+            {
+                minimizedWindows.RemoveAt(i);
+                continue;
+            }
+            if (!Native.IsWindowVisible(window.Handle))
+                continue;
+
+            if (window.WasForeground && focusTarget is null)
+            {
+                focusTarget = window;
+                continue;
+            }
+
+            if (Native.ShowWindowAsync(window.Handle, Native.ShowNormalWithoutActivation))
                 minimizedWindows.RemoveAt(i);
         }
+
+        if (focusTarget is { } target && IsSameWindow(target)
+            && Native.IsIconic(target.Handle) && Native.IsWindowVisible(target.Handle)
+            && IsOnDesktopMonitor(target.Handle, monitor)
+            && Native.ShowWindowAsync(target.Handle, Native.RestoreAndActivate))
+            minimizedWindows.Remove(target);
     }
 
     private static bool IsSameWindow(MinimizedWindow window) =>
@@ -79,5 +100,5 @@ internal sealed class MonitorDesktop
         Native.MonitorFromWindow(window, Native.MonitorDefaultToNull) == monitor
         && !Native.IsWindowCloaked(window);
 
-    private readonly record struct MinimizedWindow(nint Handle, uint Thread, uint Process);
+    private readonly record struct MinimizedWindow(nint Handle, uint Thread, uint Process, bool WasForeground);
 }

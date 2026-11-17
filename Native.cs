@@ -25,6 +25,7 @@ internal static class Native
     internal const uint NoActivateStyle = 0x08000000;
     internal const uint Owner = 4;
     internal const uint Root = 2;
+    internal const uint RootOwner = 3;
 
     internal const uint MonitorDefaultToNull = 0;
     internal const uint MonitorDefaultToNearest = 2;
@@ -36,6 +37,7 @@ internal static class Native
     internal const uint ShowMaximized = 3;
     internal const int ShowNormalWithoutActivation = 4;
     internal const int ShowMinimizedWithoutActivation = 7;
+    internal const int RestoreAndActivate = 9;
     internal const int DwmCloaked = 14;
 
     internal const int LowLevelKeyboardHook = 13;
@@ -147,6 +149,9 @@ internal static class Native
 
     [DllImport("user32.dll")]
     internal static extern bool IsZoomed(nint window);
+
+    [DllImport("user32.dll")]
+    internal static extern nint GetForegroundWindow();
 
     [DllImport("user32.dll")]
     internal static extern bool ShowWindowAsync(nint window, int command);

@@ -19,12 +19,12 @@ internal sealed class MonitorDesktopShortcut : IDisposable
 
     private readonly Native.KeyboardHookCallback callback;
     private readonly WindowsFormsSynchronizationContext uiContext = new();
-    private readonly Action<nint> toggleDesktop;
+    private readonly Action<nint, nint> toggleDesktop;
     private nint hook;
     private bool dDown;
     private bool suppressD;
 
-    internal MonitorDesktopShortcut(Action<nint> toggleDesktop)
+    internal MonitorDesktopShortcut(Action<nint, nint> toggleDesktop)
     {
         this.toggleDesktop = toggleDesktop;
         callback = OnKeyboardEvent;
@@ -96,6 +96,7 @@ internal sealed class MonitorDesktopShortcut : IDisposable
         if (monitor == 0)
             return false;
 
+        nint foreground = Native.GetForegroundWindow();
         // An unassigned key prevents the shell from treating Win key-up as a standalone press.
         Native.SendInput((uint)MenuMaskInputs.Length, MenuMaskInputs, InputSize);
 
@@ -103,7 +104,7 @@ internal sealed class MonitorDesktopShortcut : IDisposable
         uiContext.Post(_ =>
         {
             if (hook == currentHook && IsRunning && SystemInformation.MonitorCount > 1)
-                toggleDesktop(monitor);
+                toggleDesktop(monitor, foreground);
         }, null);
         return true;
     }
