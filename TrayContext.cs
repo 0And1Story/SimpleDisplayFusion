@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Security;
+using Microsoft.Win32;
 
 namespace SimpleDisplayFusion;
 
@@ -12,6 +13,8 @@ internal sealed class TrayContext : ApplicationContext
     private readonly ToolStripMenuItem launchAtSignIn = new("登录 Windows 时启动");
     private readonly ContextMenuStrip menu = new();
     private readonly NotifyIcon tray;
+    private bool followMouseRequested;
+    private bool disposed;
 
     internal TrayContext(Icon icon)
     {
@@ -19,23 +22,60 @@ internal sealed class TrayContext : ApplicationContext
         launchAtSignIn.Click += (_, _) => ToggleStartup();
         var exit = new ToolStripMenuItem("退出", null, (_, _) => ExitThread());
         menu.Items.AddRange([followMouse, launchAtSignIn, new ToolStripSeparator(), exit]);
-        menu.Opening += (_, _) => RefreshStartup();
+        menu.Opening += (_, _) =>
+        {
+            bool multipleMonitors = SystemInformation.MonitorCount > 1;
+            if (followMouse.Enabled != multipleMonitors)
+                UpdateDisplayState(multipleMonitors);
+            RefreshStartup();
+        };
 
         tray = new NotifyIcon { Icon = icon, ContextMenuStrip = menu, Text = AppName, Visible = true };
         try
         {
-            if (AppSettings.FollowMouseEnabled)
-                watcher.Start();
+            followMouseRequested = AppSettings.FollowMouseEnabled;
         }
         catch (Exception error) when (IsSettingsError(error))
         {
+            ShowError("无法读取窗口跟随设置。", error);
+        }
+        SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
+        UpdateDisplayState(SystemInformation.MonitorCount > 1);
+    }
+
+    private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+    {
+        if (!disposed)
+            UpdateDisplayState(SystemInformation.MonitorCount > 1);
+    }
+
+    private void UpdateDisplayState(bool multipleMonitors)
+    {
+        followMouse.Enabled = multipleMonitors;
+        try
+        {
+            if (multipleMonitors && followMouseRequested)
+                watcher.Start();
+            else if (watcher.IsRunning)
+                watcher.Stop();
+        }
+        catch (Win32Exception error)
+        {
+            RefreshFollowMouse();
             ShowError("无法启用窗口跟随。", error);
+            return;
         }
         RefreshFollowMouse();
     }
 
     private void ToggleFollowMouse()
     {
+        if (SystemInformation.MonitorCount <= 1)
+        {
+            UpdateDisplayState(multipleMonitors: false);
+            return;
+        }
+
         try
         {
             if (watcher.IsRunning)
@@ -56,6 +96,7 @@ internal sealed class TrayContext : ApplicationContext
                     throw;
                 }
             }
+            followMouseRequested = watcher.IsRunning;
         }
         catch (Exception error) when (IsSettingsError(error))
         {
@@ -79,8 +120,9 @@ internal sealed class TrayContext : ApplicationContext
 
     private void RefreshFollowMouse()
     {
-        followMouse.Checked = watcher.IsRunning;
-        tray.Text = watcher.IsRunning ? AppName : $"{AppName}（已暂停）";
+        followMouse.Checked = followMouse.Enabled ? watcher.IsRunning : followMouseRequested;
+        tray.Text = !followMouse.Enabled ? $"{AppName}（单屏）"
+            : watcher.IsRunning ? AppName : $"{AppName}（已暂停）";
     }
 
     private void RefreshStartup()
@@ -109,8 +151,10 @@ internal sealed class TrayContext : ApplicationContext
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
+        if (disposing && !disposed)
         {
+            disposed = true;
+            SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
             watcher.Dispose();
             tray.Dispose();
             menu.Dispose();
