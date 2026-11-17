@@ -65,7 +65,8 @@ internal sealed class MonitorDesktop
                 continue;
 
             if (!Native.IsIconic(window.Handle)
-                || (Native.IsWindowVisible(window.Handle) && Native.ShowWindowAsync(window.Handle, Native.RestoreWindow)))
+                || (Native.IsWindowVisible(window.Handle)
+                    && Native.ShowWindowAsync(window.Handle, Native.ShowNormalWithoutActivation)))
                 minimizedWindows.RemoveAt(i);
         }
     }

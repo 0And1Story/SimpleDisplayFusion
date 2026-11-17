@@ -34,9 +34,8 @@ internal static class Native
     internal const uint AsyncWindowPos = 0x4000;
     internal const uint AsyncWindowPlacement = 0x0004;
     internal const uint ShowMaximized = 3;
-    internal const uint ShowNormalWithoutActivation = 4;
+    internal const int ShowNormalWithoutActivation = 4;
     internal const int ShowMinimizedWithoutActivation = 7;
-    internal const int RestoreWindow = 9;
     internal const int DwmCloaked = 14;
 
     internal const int LowLevelKeyboardHook = 13;
